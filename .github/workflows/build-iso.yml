@@ -1,0 +1,24 @@
+# Put this file at: .github/workflows/build-iso.yml
+name: Build CKOS ISO
+on: workflow_dispatch
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    container:
+      image: debian:trixie
+      options: --privileged
+    steps:
+      - run: apt-get update && apt-get install -y git ca-certificates
+      - uses: actions/checkout@v4
+      - run: bash build-ckos.sh ${{ matrix.arch }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ckos-${{ matrix.arch }}-iso
+          path: ckos/*.iso
